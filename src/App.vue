@@ -53,7 +53,7 @@ export default {
   methods: {
     clearLocalStorageIfNeeded() {
       localStorage.clear();
-     
+
       try {
         const shouldClearStorage = true;
 
