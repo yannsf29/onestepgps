@@ -6,13 +6,14 @@
         <slot></slot>
         <div class="button-container">
           <button @click="savePreferences" class="save-button">Save</button>
-          <button @click="refreshData" class="refresh-button">Unhide Devices</button>
+          <button @click="refreshData" class="refresh-button">
+            Unhide Devices
+          </button>
         </div>
       </div>
     </div>
   </transition>
 </template>
-
 
 <script>
 export default {
@@ -25,12 +26,10 @@ export default {
       this.$emit("closeModal");
     },
     savePreferences() {
-      console.log("hiddenDevices in PreferencesModal.vue props:", this.hiddenDevices);
       let dataToSave = {
         SortOrder: this.selectedSort,
         HiddenDevices: this.hiddenDevices,
       };
-      console.log('Data to be saved from PreferencesModal:', dataToSave);
       this.$emit("save-preferences", dataToSave);
       this.closeModal();
     },
@@ -129,6 +128,4 @@ export default {
   cursor: pointer;
   transition: background-color 0.2s;
 }
-
-
 </style>

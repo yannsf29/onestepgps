@@ -18,7 +18,10 @@
         :devices="devices"
         @hidden-changed="handleHiddenChanged"
       />
-      <DeviceIconsPreference :devices="devices"  @clear-local-storage="clearLocalStorageIfNeeded" />
+      <DeviceIconsPreference
+        :devices="devices"
+        @clear-local-storage="clearLocalStorageIfNeeded"
+      />
     </PreferencesModal>
     <MapComponent :devices="devices" ref="mapComponentRef" />
   </div>
@@ -50,25 +53,19 @@ export default {
   methods: {
     clearLocalStorageIfNeeded() {
       localStorage.clear();
-      console.log('Local storage has been cleared');
-    try {
-      // Perform a check to see if clearing is necessary.
-      // This is a placeholder, you'd implement your own logic to decide when to clear storage.
-      const shouldClearStorage = true; // Replace with actual condition
+     
+      try {
+        const shouldClearStorage = true;
 
-      if (shouldClearStorage) {
-        // Clear specific items if necessary
-        localStorage.removeItem('someKey');
+        if (shouldClearStorage) {
+          localStorage.removeItem("someKey");
 
-        // Or clear all local storage (use with caution)
-        localStorage.clear();
-
-        console.log('Local storage cleared to free up space');
+          localStorage.clear();
+        }
+      } catch (error) {
+        console.error("Error clearing local storage:", error);
       }
-    } catch (error) {
-      console.error('Error clearing local storage:', error);
-    }
-  },
+    },
     async refreshDataAndUnselectNames() {
       await this.fetchDevices();
       this.hiddenDeviceIds = [];
@@ -76,25 +73,16 @@ export default {
     async handleSavePreferences(dataToSave) {
       this.clearLocalStorageIfNeeded();
       try {
-        // First, create a copy of the dataToSave object with the hidden devices array
         const rawDataToSave = {
           ...dataToSave,
           HiddenDevices: Array.from(dataToSave.HiddenDevices),
         };
-        rawDataToSave.ID = 1; // Assuming the user ID is 1
-
-        // Next, add the icon images to the rawDataToSave object
-        // It assumes that there is a 'base64Image' property on each device
-        // that was filled by the uploadIcon method when an image was uploaded
+        rawDataToSave.ID = 1;
         rawDataToSave.Icons = this.devices.map((device) => ({
           device_id: device.device_id,
           icon: device.base64Image || null,
         }));
 
-        // Log the data being sent to the backend
-        console.log("Sending preferences to backend:", rawDataToSave);
-
-        // Make the POST request to the backend to save the preferences
         const response = await fetch(
           "http://localhost:8081/preferences/update",
           {
@@ -106,39 +94,28 @@ export default {
           }
         );
 
-        // Parse the JSON response from the backend
-        const responseData = await response.json();
-        console.log("Response from backend:", responseData);
-
-        // Check if the response was not ok, and if so, throw an error
         if (!response.ok) {
           throw new Error("Failed to save preferences");
         }
 
-        // Fetch the updated user preferences
         await this.fetchUserPreferences();
 
-        // Fetch the updated devices list if necessary
-        // If the preferences update does not affect devices data, you can remove this line
         await this.fetchDevices();
 
-        // Close the preferences modal
         this.showModal = false;
       } catch (error) {
-        // Log an error if the fetch operation fails
         console.error("Failed to save preferences:", error);
       }
-      
     },
     handleHiddenChanged(newHiddenDeviceIds) {
       this.hiddenDeviceIds = newHiddenDeviceIds;
       this.devices.forEach((device) => {
-        device.hidden = this.hiddenDeviceIds.includes(device.device_id); // Use this.hiddenDeviceIds
+        device.hidden = this.hiddenDeviceIds.includes(device.device_id);
       });
       localStorage.setItem(
         "hiddenDevices",
         JSON.stringify(this.hiddenDeviceIds)
-      ); // Use this.hiddenDeviceIds
+      );
     },
 
     async fetchUserPreferences() {
@@ -164,8 +141,6 @@ export default {
       try {
         const response = await fetch("http://localhost:8081");
         const data = await response.json();
-
-        console.log(data);
 
         if (
           data &&

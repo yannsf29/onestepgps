@@ -2,7 +2,6 @@
   <div class="preference-card">
     <h2>Hide Devices</h2>
     <div class="device-row" v-for="device in devices" :key="device.device_id">
-      <!-- Check the checkbox if the device ID is in the hiddenDeviceIds list -->
       <input
         type="checkbox"
         :id="'device-' + device.device_id"
@@ -31,7 +30,6 @@ export default {
     hiddenDeviceIds: {
       deep: true,
       handler(newVal) {
-        console.log("HideDevicesPreference emitting hidden devices:", newVal);
         this.$emit("hidden-changed", newVal);
         this.storeHiddenDevices(newVal);
       },
@@ -49,7 +47,6 @@ export default {
   methods: {
     getStoredHiddenDevices() {
       const storedDevices = localStorage.getItem("hiddenDevices");
-      console.log("Fetching stored hidden devices:", storedDevices);
       return storedDevices ? JSON.parse(storedDevices) : [];
     },
     storeHiddenDevices(deviceIds) {

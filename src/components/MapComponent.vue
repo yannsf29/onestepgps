@@ -1,26 +1,29 @@
 <template>
   <div class="map-container">
     <GMapMap
-    :center="center"
+      :center="center"
       :zoom="10"
       map-type-id="terrain"
       :options="mapOptions"
       ref="mapRef"
       class="gmap-canvas"
     >
-    <GMapMarker
-    v-for="device in devices"
-    :key="device.device_id"
-    :position="{
-        lat: device.latest_device_point.lat,
-        lng: device.latest_device_point.lng,
-    }"
-    :clickable="true"
-    :draggable="true"
-    @click="updateCenter({ lat: device.latest_device_point.lat, lng: device.latest_device_point.lng })"
-
-/>
-
+      <GMapMarker
+        v-for="device in devices"
+        :key="device.device_id"
+        :position="{
+          lat: device.latest_device_point.lat,
+          lng: device.latest_device_point.lng,
+        }"
+        :clickable="true"
+        :draggable="true"
+        @click="
+          updateCenter({
+            lat: device.latest_device_point.lat,
+            lng: device.latest_device_point.lng,
+          })
+        "
+      />
     </GMapMap>
   </div>
 </template>
@@ -34,9 +37,6 @@ export default {
     return {
       center: { lat: 51.5072, lng: 0.1276 },
       mapOptions: {
-        styles: [
-          /* You can add your own map styles here, or leave it blank for default styling */
-        ],
         zoomControl: true,
         mapTypeControl: true,
         scaleControl: true,
@@ -48,25 +48,24 @@ export default {
   },
   methods: {
     updateCenter(newCenter) {
-    this.center = newCenter;
+      this.center = newCenter;
+    },
   },
-},
-watch: {
-  devices(newDevices) {
-    if (newDevices && newDevices.length) {  // Added check for newDevices
-      let avgLat = 0;
-      let avgLng = 0;
-      newDevices.forEach(device => {
-        avgLat += device.latest_device_point.lat;
-        avgLng += device.latest_device_point.lng;
-      });
-      avgLat /= newDevices.length;
-      avgLng /= newDevices.length;
-      this.updateCenter({ lat: avgLat, lng: avgLng });
-    }
+  watch: {
+    devices(newDevices) {
+      if (newDevices && newDevices.length) {
+        let avgLat = 0;
+        let avgLng = 0;
+        newDevices.forEach((device) => {
+          avgLat += device.latest_device_point.lat;
+          avgLng += device.latest_device_point.lng;
+        });
+        avgLat /= newDevices.length;
+        avgLng /= newDevices.length;
+        this.updateCenter({ lat: avgLat, lng: avgLng });
+      }
+    },
   },
-},
-
 };
 </script>
 

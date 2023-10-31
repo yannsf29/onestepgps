@@ -163,12 +163,12 @@ export default {
   props: {
     devices: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     hiddenDevices: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   data() {
     return {
@@ -179,12 +179,10 @@ export default {
   },
   computed: {
     filteredDevices() {
-      // First, filter out hidden devices
       let processedDevices = this.devices.filter(
-        device => !this.hiddenDevices.includes(device.device_id)
+        (device) => !this.hiddenDevices.includes(device.device_id)
       );
 
-      // Then, sort the devices
       processedDevices.sort((a, b) => {
         let modifier = this.sortOrder === "asc" ? 1 : -1;
         if (a[this.sortKey] < b[this.sortKey]) return -1 * modifier;
@@ -192,20 +190,21 @@ export default {
         return 0;
       });
 
-      // Finally, filter based on the search term
       if (this.searchTerm) {
-        processedDevices = processedDevices.filter(device =>
-          device.display_name.toLowerCase().includes(this.searchTerm.toLowerCase())
+        processedDevices = processedDevices.filter((device) =>
+          device.display_name
+            .toLowerCase()
+            .includes(this.searchTerm.toLowerCase())
         );
       }
 
       return processedDevices;
-    }
+    },
   },
   methods: {
     toggleSortOrder() {
       this.sortOrder = this.sortOrder === "asc" ? "desc" : "asc";
-    }
-  }
+    },
+  },
 };
 </script>

@@ -2,25 +2,28 @@
   <div class="preference-card">
     <h2>Upload Device Icons</h2>
     <div class="device-row" v-for="device in devices" :key="device.device_id">
-      <!-- Display the uploaded image or a default avatar -->
       <div
-  v-if="!device.tempImageUrl && !device.iconPath"
-  :style="getDefaultAvatarStyle(device)"
-  class="avatar-icon"
-></div>
-<img
-  v-else
-  :src="device.tempImageUrl || device.iconPath"
-  class="avatar-icon"
-  alt="Uploaded Icon"
-/>
+        v-if="!device.tempImageUrl && !device.iconPath"
+        :style="getDefaultAvatarStyle(device)"
+        class="avatar-icon"
+      ></div>
+      <img
+        v-else
+        :src="device.tempImageUrl || device.iconPath"
+        class="avatar-icon"
+        alt="Uploaded Icon"
+      />
       <label class="device-label">{{ device.display_name }}</label>
-      
+
       <label class="custom-file-upload">
-        <input type="file" class="file-input" @change="uploadIcon(device, $event)" />
+        <input
+          type="file"
+          class="file-input"
+          @change="uploadIcon(device, $event)"
+        />
         Choose File
       </label>
-          </div>
+    </div>
   </div>
 </template>
 
@@ -31,35 +34,31 @@ export default {
   },
   methods: {
     uploadIcon(device, event) {
-      this.$emit('clear-local-storage');
-  const reader = new FileReader();
-  device.selectedFile = event.target.files[0];
+      this.$emit("clear-local-storage");
+      const reader = new FileReader();
+      device.selectedFile = event.target.files[0];
 
-  reader.onload = (e) => {
-    // The file's text will be printed here
-    console.log(e.target.result);
-    device.base64Image = e.target.result;
-    device.tempImageUrl = URL.createObjectURL(device.selectedFile);
-  };
-
-  reader.readAsDataURL(device.selectedFile);
-},
-  getDefaultAvatarStyle(device) {
-    // Generate a color based on the device_id or other attribute
-    const colors = ["#FFD700", "#FF4500", "#8A2BE2", "#7FFF00", "#20B2AA"];
-    const index = device.device_id % colors.length;
-    const defaultColor = colors[index];
-
-    // If there's no image URL, use the default color
-    if (!device.tempImageUrl && !device.iconPath) {
-      return {
-        backgroundColor: defaultColor,
+      reader.onload = (e) => {
+        device.base64Image = e.target.result;
+        device.tempImageUrl = URL.createObjectURL(device.selectedFile);
       };
-    } else {
-      return {};
-    }
+
+      reader.readAsDataURL(device.selectedFile);
+    },
+    getDefaultAvatarStyle(device) {
+      const colors = ["#FFD700", "#FF4500", "#8A2BE2", "#7FFF00", "#20B2AA"];
+      const index = device.device_id % colors.length;
+      const defaultColor = colors[index];
+
+      if (!device.tempImageUrl && !device.iconPath) {
+        return {
+          backgroundColor: defaultColor,
+        };
+      } else {
+        return {};
+      }
+    },
   },
-},
 };
 </script>
 
