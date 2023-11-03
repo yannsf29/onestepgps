@@ -1,29 +1,32 @@
 <template>
   <div class="parent-container">
-    <DeviceList
-      :devices="devices"
-      @toggle-preferences="showModal = !showModal"
-      :hiddenDevices="hiddenDeviceIds"
-    />
-    <PreferencesModal
-      :showModal="showModal"
-      @closeModal="showModal = false"
-      @save-preferences="handleSavePreferences"
-      @refresh-data="refreshDataAndUnselectNames"
-      @hidden-changed="handleHiddenChanged"
-      :hiddenDevices="hiddenDeviceIds"
-    >
-      <SortPreference @sort-changed="handleSortChanged" />
-      <HideDevicesPreference
+    <LoginComponent v-if="!userId" @login-success="handleLogin" />
+    <div v-else>
+      <DeviceList
         :devices="devices"
+        @toggle-preferences="showModal = !showModal"
+        :hiddenDevices="hiddenDeviceIds"
+      />
+      <PreferencesModal
+        :showModal="showModal"
+        @closeModal="showModal = false"
+        @save-preferences="handleSavePreferences"
+        @refresh-data="refreshDataAndUnselectNames"
         @hidden-changed="handleHiddenChanged"
-      />
-      <DeviceIconsPreference
-        :devices="devices"
-        @clear-local-storage="clearLocalStorageIfNeeded"
-      />
-    </PreferencesModal>
-    <MapComponent :devices="devices" ref="mapComponentRef" />
+        :hiddenDevices="hiddenDeviceIds"
+      >
+        <SortPreference @sort-changed="handleSortChanged" />
+        <HideDevicesPreference
+          :devices="devices"
+          @hidden-changed="handleHiddenChanged"
+        />
+        <DeviceIconsPreference
+          :devices="devices"
+          @clear-local-storage="clearLocalStorageIfNeeded"
+        />
+      </PreferencesModal>
+      <MapComponent :devices="devices" ref="mapComponentRef" />
+    </div>
   </div>
 </template>
 
@@ -33,6 +36,7 @@ import PreferencesModal from "./components/PreferencesModal.vue";
 import MapComponent from "./components/MapComponent.vue";
 import HideDevicesPreference from "./components/HideDevicesPreference.vue";
 import DeviceIconsPreference from "./components/DeviceIconsPreference.vue";
+import LoginComponent from "./components/LoginComponent.vue"; // Import the LoginComponent
 
 export default {
   components: {
@@ -41,6 +45,7 @@ export default {
     MapComponent,
     HideDevicesPreference,
     DeviceIconsPreference,
+    LoginComponent,
   },
   data() {
     return {
@@ -48,9 +53,15 @@ export default {
       hiddenDeviceIds: [],
       preferences: {},
       showModal: false,
+      userId: null,
     };
   },
   methods: {
+    handleLogin(userId) {
+      this.userId = userId;
+      this.fetchDevices();
+      this.fetchUserPreferences();
+    },
     clearLocalStorageIfNeeded() {
       localStorage.clear();
 
@@ -70,21 +81,17 @@ export default {
       await this.fetchDevices();
       this.hiddenDeviceIds = [];
     },
+
     async handleSavePreferences(dataToSave) {
-      this.clearLocalStorageIfNeeded();
+      this.clearLocalStorageIfNeeded(dataToSave.pictureUpdated);
       try {
         const rawDataToSave = {
           ...dataToSave,
           HiddenDevices: Array.from(dataToSave.HiddenDevices),
+          userId: this.userId,
         };
-        rawDataToSave.ID = 1;
-        rawDataToSave.Icons = this.devices.map((device) => ({
-          device_id: device.device_id,
-          icon: device.base64Image || null,
-        }));
-
         const response = await fetch(
-          "http://localhost:8081/preferences/update",
+          `http://localhost:8081/preferences/${this.userId}/update`,
           {
             method: "POST",
             headers: {
@@ -99,9 +106,6 @@ export default {
         }
 
         await this.fetchUserPreferences();
-
-        await this.fetchDevices();
-
         this.showModal = false;
       } catch (error) {
         console.error("Failed to save preferences:", error);
@@ -117,26 +121,25 @@ export default {
         JSON.stringify(this.hiddenDeviceIds)
       );
     },
-
     async fetchUserPreferences() {
-      try {
-        const response = await fetch("http://localhost:8081/preferences/1");
+      console.log("Current username:", this.username);
+
+      if (this.username) {
+        const response = await fetch(
+          `http://localhost:8081/preferences/by-username/${encodeURIComponent(
+            this.username
+          )}`
+        );
         if (!response.ok) {
           throw new Error(`Failed with status ${response.status}`);
         }
         this.preferences = await response.json();
-        this.hiddenDeviceIds =
-          this.preferences && this.preferences.HiddenDevices
-            ? this.preferences.HiddenDevices
-            : [];
+        this.hiddenDeviceIds = this.preferences.HiddenDevices || [];
         this.devices.forEach((device) => {
           device.hidden = this.hiddenDeviceIds.includes(device.device_id);
         });
-      } catch (error) {
-        console.error("Failed to fetch user preferences:", error);
       }
     },
-
     async fetchDevices() {
       try {
         const response = await fetch("http://localhost:8081");
